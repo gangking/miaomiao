@@ -8,11 +8,11 @@
       <ul>
         <!-- <li class="pullDownMsg">{{pullDownMsg}}</li> -->
         <li v-for="(item) in movieList"
-            :key="item.id"
-            @tap="handleToDetail">
-          <div class="pic_show"><img :src="item.img | setWH('128.180')"></div>
+            :key="item.id">
+          <div class="pic_show"
+               @tap="handleToDetail(item.id)"><img :src="item.img | setWH('128.180')"></div>
           <div class="info_list">
-            <h2>{{item.nm}}<img v-if="item.version=='v3d imax'"
+            <h2 @tap="handleToDetail(item.id)">{{item.nm}}<img v-if="item.version=='v3d imax'"
                    src="@/assets/maxs.png"
                    alt='' /></h2>
             <p>观众评 <span class="grade">{{item.sc}}</span></p>
@@ -96,8 +96,9 @@ export default {
     })
   },
   methods: {
-    handleToDetail () {
-      alert('列表被点击')
+    handleToDetail (movieId) {
+      //   console.log(movieId)
+      this.$router.push('/movie/detail/1/' + movieId);
     },
     handleToScroll (pos) {
       if (pos.y > 30) {
