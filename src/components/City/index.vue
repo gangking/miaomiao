@@ -1,28 +1,36 @@
 <template>
   <div class="city_body">
     <div class="city_list">
-      <div class="city_hot">
-        <h2>热门城市</h2>
-        <ul class="clearfix">
-          <li v-for="(item) in hotList"
-              :key='item.id'>
-            {{item.nm}}
-          </li>
-        </ul>
-      </div>
-      <div class="city_sort"
-           ref="city_sort">
-        <div v-for="(item) in cityList"
-             :key="item.index">
-          <h2>{{item.index}}</h2>
-          <ul>
-            <li v-for="(cityItem) in item.list"
-                :key="cityItem.id">
-              {{cityItem.nm}}
-            </li>
-          </ul>
+      <Loading v-if="isLoading"></Loading>
+      <Scroll v-else
+              ref="city_List">
+        <div>
+          <div class="city_hot">
+            <h2>热门城市</h2>
+            <ul class="clearfix">
+              <li v-for="(item) in hotList"
+                  :key='item.id'
+                  @tap="handleToCity(item.nm , item.id)">
+                {{item.nm}}
+              </li>
+            </ul>
+          </div>
+          <div class="city_sort"
+               ref="city_sort">
+            <div v-for="(item) in cityList"
+                 :key="item.index">
+              <h2>{{item.index}}</h2>
+              <ul>
+                <li v-for="(cityItem) in item.list"
+                    :key="cityItem.id"
+                    @tap="handleToCity(cityItem.nm , cityItem.id)">
+                  {{cityItem.nm}}
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
+      </Scroll>
     </div>
     <div class="city_index">
       <ul>
@@ -42,10 +50,20 @@ export default {
   data () {
     return {
       cityList: [],
-      hotList: []
+      hotList: [],
+      isLoading: true
     }
   },
   mounted () {
+    var cityList = window.localStorage.getItem('cityList');
+    var hotList = window.localStorage.getItem('hotList');
+    if (cityList && hotList) {
+      this.cityList = JSON.parse(cityList);
+      this.hotList = JSON.parse(hotList);
+      this.isLoading = false;
+      return;
+    }
+
     this.axios.get('/api/cityList').then((res) => {
       console.log(res);
       var msg = res.data.msg;
@@ -56,6 +74,9 @@ export default {
         var { cityList, hotList } = this.formatCityList(data.cities);
         this.cityList = cityList;
         this.hotList = hotList;
+        this.isLoading = false;
+        window.localStorage.setItem('cityList', JSON.stringify(this.cityList));
+        window.localStorage.setItem('hotList', JSON.stringify(this.hotList));
       }
     }).catch(() => {
 
@@ -123,7 +144,14 @@ export default {
     handleIndex (index) {
       console.log(index)
       var h2 = this.$refs.city_sort.getElementsByTagName('h2');
-      this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+      //   this.$refs.city_sort.parentNode.scrollTop = h2[index].offsetTop;
+      this.$refs.city_List.toScrollTop(-h2[index].offsetTop);
+    },
+    handleToCity (nm, id) {
+      this.$store.commit('city/CITY_INFO', { nm, id });
+      window.localStorage.setItem('nowNm', nm);
+      window.localStorage.setItem('nowId', id);
+      this.$router.push('/movie/nowPlaying');
     }
   }
 }
